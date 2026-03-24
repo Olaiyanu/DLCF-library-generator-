@@ -217,10 +217,10 @@ export default function App() {
                   style={{ width: '450px' }}
                 >
                   {/* Card Header */}
-                  <div className="bg-purple-700 p-5 text-center relative overflow-hidden border-b-4 border-purple-900">
+                  <div className="bg-purple-700 pt-2 pb-6 px-5 text-center relative overflow-hidden border-b-4 border-purple-900">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-purple-600/30 rounded-full -mr-24 -mt-24 blur-2xl" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-800/40 rounded-full -ml-16 -mb-16 blur-xl" />
-                    <h3 className="text-white font-black text-xl tracking-[0.2em] relative z-10 drop-shadow-sm">
+                    <h3 className="text-white font-black text-xl tracking-[0.2em] relative z-10 drop-shadow-sm mt-[-2px]">
                       DLCF FUTA LIBRARY CARD
                     </h3>
                   </div>
