@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { toPng } from 'html-to-image';
-import { Download, User, Mail, Phone, Calendar, Hash, Library, RefreshCcw } from 'lucide-react';
+import { Download, User, Mail, Phone, Calendar, Hash, Library, RefreshCcw, Send, Loader2 } from 'lucide-react';
 import { cn } from './lib/utils';
+import { Toaster, toast } from 'sonner';
 
 interface CardData {
   name: string;
@@ -21,6 +22,7 @@ export default function App() {
   });
 
   const [isGenerated, setIsGenerated] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Initialize and handle sequential ID
@@ -64,6 +66,48 @@ export default function App() {
     setIsGenerated(false);
   };
 
+  const sendEmail = async () => {
+    if (cardRef.current === null) return;
+    if (!formData.email) {
+      toast.error('Please provide an email address');
+      return;
+    }
+
+    setIsSending(true);
+    const toastId = toast.loading('Generating and sending email...');
+
+    try {
+      // Capture the card image
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
+
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          name: formData.name,
+          imageBase64: dataUrl,
+          cardId: formData.cardId,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success('Library card sent successfully!', { id: toastId });
+      } else {
+        toast.error(result.error || 'Failed to send email', { id: toastId });
+      }
+    } catch (err) {
+      console.error('Error sending email:', err);
+      toast.error('An error occurred while sending the email', { id: toastId });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const downloadCard = async () => {
     if (cardRef.current === null) return;
 
@@ -80,6 +124,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <Toaster position="top-center" richColors />
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-purple-600 rounded-xl shadow-lg mb-4">
@@ -191,13 +236,27 @@ export default function App() {
                 <h2 className="text-xl font-semibold text-slate-800">Live Preview</h2>
                 <div className="flex items-center gap-4">
                   {isGenerated && (
-                    <button
-                      onClick={downloadCard}
-                      className="flex items-center gap-2 text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download
-                    </button>
+                    <>
+                      <button
+                        onClick={downloadCard}
+                        className="flex items-center gap-2 text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download
+                      </button>
+                      <button
+                        onClick={sendEmail}
+                        disabled={isSending}
+                        className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors disabled:opacity-50"
+                      >
+                        {isSending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        Send Email
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={resetForm}
